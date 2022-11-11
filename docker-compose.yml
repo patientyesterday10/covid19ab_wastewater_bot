@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+  app:
+    image: mastobot
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    environment:
+      - MASTODON_ACCESS_TOKEN=${MASTODON_ACCESS_TOKEN}
+      - MASTODON_API_BASE_URL=${MASTODON_API_BASE_URL}
+    volumes:
+      - ./app:/app:rw
+    command: "/app/run.sh"
