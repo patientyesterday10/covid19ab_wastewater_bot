@@ -102,14 +102,17 @@ RUN apt-get update -yq && \
 COPY --from=pythonbuilder /opt/Python-3.10.8/python /usr/local/bin/python3.10
 COPY --from=pythonbuilder /usr/local/lib/python3.10 /usr/local/lib/python3.10
 COPY --from=pythonbuilder /app/.venv /opt/env
-COPY --from=pythonbuilder /app/pyproject.toml /app/poetry/
-COPY --from=pythonbuilder /app/poetry.lock /app/poetry/
-COPY --from=pythonbuilder /app/requirements.txt /app/poetry/
 COPY --from=rbuilder /usr/local/lib/R/site-library /usr/local/lib/R/site-library
+
+# Copy script files:
+COPY app/bot.py /app/bot.py
+COPY app/covid_plots.R /app/covid_plots.R
+COPY app/run.sh /app/run.sh
 
 # User settings
 RUN useradd --shell /bin/bash -m app && \
-chown -R app:app /app
+    chown -R app:app /app && \
+    chmod +x /app/run.sh
 
 # Run as non-root user
 USER app

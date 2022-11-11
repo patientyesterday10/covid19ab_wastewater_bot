@@ -9,6 +9,5 @@ services:
     environment:
       - MASTODON_ACCESS_TOKEN=${MASTODON_ACCESS_TOKEN}
       - MASTODON_API_BASE_URL=${MASTODON_API_BASE_URL}
-    volumes:
-      - ./app:/app:rw
-    command: "/app/run.sh"
+    user: ${CURRENT_UID}
+    entrypoint: "/bin/bash /app/run.sh"

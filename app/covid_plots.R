@@ -131,6 +131,7 @@ p_calgary2 <- ggplot(plot_data[location %in% c("Bonnybrook WT Plant", "Fish Cree
   theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
   xlab(NULL)+
   scale_y_continuous("SARS-CoV-2 RNA Flux (Avg of N1,N2)")+
+  scale_x_date(date_breaks="1 year", date_labels="%Y", date_minor_breaks="3 months")+
   scale_fill_viridis_c(option = "viridis",name="Percentile",guide="none")+
   scale_shape_discrete(name=NULL)+
   scale_colour_discrete(name=NULL)+
