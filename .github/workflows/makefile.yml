@@ -3,16 +3,31 @@ name: Makefile CI
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - app/**
+      - docker/**
+      - Makefile
+      - docker-compose.yml
+      - .github/workflows/makefile.yml
+      - pypproject.toml
+      - poetry.lock
+      - requirements.txt
   pull_request:
     branches: [ "main" ]
+    paths:
+      - app/**
+      - docker/**
+      - Makefile
+      - docker-compose.yml
+      - .github/workflows/makefile.yml
+      - pypproject.toml
+      - poetry.lock
+      - requirements.txt
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
-
     - name: Build Docker Image
       run: make build
