@@ -1,8 +1,11 @@
 name: Scheduled Job
+env: 
+  MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
+  MASTODON_API_BASE_URL: https://botsin.space/
 
 on:
     schedule:
-    - cron: "0 13 * * *"
+    - cron: "0 13 * * 1-5"
 
 jobs:
   build:
