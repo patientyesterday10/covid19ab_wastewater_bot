@@ -1,0 +1,19 @@
+name: Scheduled Job
+
+on:
+    schedule:
+    - cron: "0 13 * * *"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build Image
+      run: make build
+
+    - name: Run 
+      run: make run
