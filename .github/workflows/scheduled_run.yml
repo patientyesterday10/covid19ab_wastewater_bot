@@ -8,7 +8,7 @@ on:
 env:
   MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
   MASTODON_API_BASE_URL: https://botsin.space/
-  CACHE_IMAGE: patientyesterday10/mastobot_covid19
+  CACHE_IMAGE: ghcr.io/patientyesterday10/mastobot_covid19
   CACHE_TAG: latest
   DOCKER_BUILDKIT: 1
 
