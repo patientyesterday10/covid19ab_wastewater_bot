@@ -19,7 +19,7 @@
 
   <p align="center">
     This project contains the source code used for the Alberta COVID19 Mastodon BOT, which can be followed here: 
-    <a href="https://botsin.space/@covid19ab_wastewater][https://botsin.space/@covid19ab_wastewater">https://botsin.space/@covid19ab_wastewater</a>
+    <a rel="me" href="https://botsin.space/@covid19ab_wastewater">https://botsin.space/@covid19ab_wastewater</a>
     <br />
     <a href="https://github.com/patientyesterday10/covid19ab_wastewater_bot/issues">Report Bug</a>
     ·
