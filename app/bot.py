@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from mastodon import Mastodon
 import os
 import logging
@@ -42,8 +44,12 @@ if __name__ == "__main__":
 
     logger.info("Posting Status to Mastodon.")
     mdon.status_post(
-        status="Alberta COVID19 Wastewater Trends. Source: https://covid-tracker.chi-csm.ca/",
-        media_ids=media_ids
+        status="Alberta COVID19 Wastewater Trends for {}.\nSource: https://covid-tracker.chi-csm.ca/".format(
+            datetime.now().strftime("%Y-%m-%d")
+        ),
+        media_ids=media_ids,
+        visibility="unlisted",
+        spoiler_text="Alberta COVID19 Wastewater Trends",
     )
 
     logger.info("Done.")
