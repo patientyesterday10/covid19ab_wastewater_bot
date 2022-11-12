@@ -7,9 +7,9 @@ env:
   DOCKER_BUILDKIT: 1
 
 on:
-    schedule:
-    - cron: "0 13 * * 1-5"
-    - cron: "0 3 * * 6"
+  schedule:
+  - cron: "0 13 * * 1-5"
+  - cron: "0 3 * * 6"
 
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
 
       - name: Login to GitHub Container Registry
         run: |
-          - echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build from dockerfile
         run: |
@@ -35,7 +35,7 @@ jobs:
         run: |
           docker push $CACHE_IMAGE:latest
 
-      -name: Run docker-compose
+      - name: Run docker-compose
         run: |
           CURRENT_UID=$(id -u):$(id -g) docker-compose up
 
