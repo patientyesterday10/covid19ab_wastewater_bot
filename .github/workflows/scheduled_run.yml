@@ -1,16 +1,15 @@
-name: Scheduled Job
-env: 
+name: Scheduled Post to Mastodon
+on:
+  schedule:
+    - cron: "0 13 * * 1-5"
+    - cron: "0 3 * * 6"
+
+env:
   MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
   MASTODON_API_BASE_URL: https://botsin.space/
   CACHE_IMAGE: patientyesterday10/mastobot_covid19
   CACHE_TAG: latest
   DOCKER_BUILDKIT: 1
-
-on:
-  schedule:
-  - cron: "0 13 * * 1-5"
-  - cron: "0 3 * * 6"
-
 
 jobs:
   build:
