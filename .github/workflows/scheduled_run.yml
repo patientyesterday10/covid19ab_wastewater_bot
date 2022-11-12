@@ -2,7 +2,7 @@ name: Scheduled Post to Mastodon
 on:
   schedule:
     - cron: "0 13 * * 1-5"
-    - cron: "0 3 * * 6"
+    - cron: "15 3 * * 6"
 
 env:
   MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
