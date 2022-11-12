@@ -13,7 +13,7 @@ build: 		## Build the docker image
 	docker build -t mastobot -f docker/Dockerfile .
 
 .PHONY: run
-run: build		## Run the docker image
+run: build	## Run the docker image
 	CURRENT_UID=$(id -u):$(id -g) docker-compose up
 
 
