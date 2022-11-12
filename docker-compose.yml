@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   app:
-    image: mastobot
+    image: ${CACHE_IMAGE}:${CACHE_TAG}
     build:
       context: .
       dockerfile: docker/Dockerfile
