@@ -44,12 +44,17 @@ if __name__ == "__main__":
 
     logger.info("Posting Status to Mastodon.")
     mdon.status_post(
-        status="Alberta COVID19 Wastewater Trends for {}.\nSource: https://covid-tracker.chi-csm.ca/\n #covid19AB".format(
-            datetime.now().strftime("%Y-%m-%d")
-        ),
+        status="Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
+               "Percentile values reflect where the reading falls within the distribution of samples from that "
+               "location.\nSource: https://covid-tracker.chi-csm.ca/".format(
+                datetime.now().strftime("%Y-%m-%d")
+                ),
         media_ids=media_ids,
+        sensitive=False,
         visibility="unlisted",
-        spoiler_text="Alberta COVID19 Wastewater Trends",
+        spoiler_text="Alberta COVID19 Wastewater Trends for {}.".format(
+            datetime.now().strftime("%Y-%m-%d")
+            ),
     )
 
     logger.info("Done.")
