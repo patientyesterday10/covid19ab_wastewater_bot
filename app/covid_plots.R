@@ -95,7 +95,7 @@ p <- ggplot(plot_data[date>=Sys.Date()-90 & !grepl("WT Plant",location),],aes(x=
   scale_shape_discrete(name=NULL)+
   coord_cartesian(ylim=c(0,NA))+
   labs(title="Alberta COVID19 Wastewater Trends",
-       subtitle=paste0("Latest data as of ",max(plot_data$date)),
+       subtitle=paste0("Latest sample as of ",max(plot_data$date)),
        caption="Percentile (PXX) indicates fraction of days below the most recent value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
 
 ggsave(filename = paste0("output/ab_wastewater.png"),plot = p, width=8,height=8,units = "in",dpi=150)
@@ -117,7 +117,7 @@ p_calgary1 <- ggplot(plot_data[location %in% c("Calgary")],aes(x=date))+
   scale_colour_discrete(name=NULL)+
   coord_cartesian(ylim=c(0,NA))+
   labs(title="Calgary COVID19 Wastewater Trends",
-       subtitle=paste0("Latest data as of ",max(plot_data[location %in% c("Calgary"),]$date)))
+       subtitle=paste0("Latest sample as of ",max(plot_data[location %in% c("Calgary"),]$date)))
 
 p_calgary2 <- ggplot(plot_data[location %in% c("Bonnybrook WT Plant", "Fish Creek WT Plant", "Pine Creek WT Plant")],aes(x=date))+
   geom_col(aes(y=n1_n2_mean_ma,fill=p_value))+
@@ -160,7 +160,7 @@ p_edmonton <- ggplot(plot_data[location %in% c("Edmonton")],aes(x=date))+
   scale_shape_discrete(name=NULL)+
   coord_cartesian(ylim=c(0,NA))+
   labs(title="Edmonton COVID19 Wastewater Trends",
-       subtitle=paste0("Latest data as of ",max(plot_data[location %in% c("Edmonton"),]$date)),
+       subtitle=paste0("Latest sample as of ",max(plot_data[location %in% c("Edmonton"),]$date)),
        caption="Percentile (PXX) indicates fraction of days below the latest value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
 
 ggsave(filename = paste0("output/edmonton_wastewater.png"),
