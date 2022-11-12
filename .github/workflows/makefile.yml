@@ -31,21 +31,21 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Prepare
-        id: prep
-        run: |
-          TAG=$(echo $GITHUB_SHA | head -c7)
-          IMAGE="patientyesterday10/mastobot_covid19"
-          echo ::set-output name=tagged_image::${IMAGE}:${TAG}
-          echo ::set-output name=tag::${TAG}
+      id: prep
+      run: |
+        TAG=$(echo $GITHUB_SHA | head -c7)
+        IMAGE="patientyesterday10/mastobot_covid19"
+        echo ::set-output name=tagged_image::${IMAGE}:${TAG}
+        echo ::set-output name=tag::${TAG}
 
     - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          # Key is named differently to avoid collision
-          key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-multi-buildx
+      uses: actions/cache@v2
+      with:
+        path: /tmp/.buildx-cache
+        # Key is named differently to avoid collision
+        key: ${{ runner.os }}-multi-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-multi-buildx
 
     - name: Build Production Image
       uses: docker/build-push-action@v2
