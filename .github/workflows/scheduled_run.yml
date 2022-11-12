@@ -3,6 +3,7 @@ on:
   schedule:
     - cron: "0 13 * * 1-5"
     - cron: "15 3 * * 6"
+  workflow_dispatch:
 
 env:
   MASTODON_ACCESS_TOKEN: ${{ secrets.MASTODON_ACCESS_TOKEN }}
@@ -12,7 +13,7 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-  build:
+  build_and_run:
     runs-on: ubuntu-latest
     steps:
 
