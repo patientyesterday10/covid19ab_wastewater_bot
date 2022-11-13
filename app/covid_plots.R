@@ -198,8 +198,11 @@ location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean
 #   geom_point(aes(y=n1_n2_mean,colour="Mean"))+
 #   facet_wrap(~location,scales="free_y")
 
+# Use kendall correlation with days to determine trend:
 location_trends <- location_trends[,list(trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),last_perc=mean(last_perc)),by=c("location")]
 location_trends[,trend_label:=ifelse(trend>0.3,"increasing",ifelse(trend<(-0.3),"decreasing","stable"))]
+
+# Categorize current levels based on percentiles:
 location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
                                      ifelse(last_perc>0.70,"high",
                                             ifelse(last_perc>0.55,"Moderate",
