@@ -208,9 +208,10 @@ location_trends <- location_trends[,list(location, value_label, trend_label, per
 setorder(location_trends,-percentile)
 
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
-
 print(location_trends)
 
-
+writeLines(
+  paste0(location_trends[,list(label=paste0(location,": ", value_label, " (",percentile,"), Trend:", trend_label)),]$label, collapse="\n"),
+    con="output/location_trends.txt")
 
 print("====== DONE ======")
