@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 datetime.now().strftime("%Y-%m-%d")),
         media_ids=media_ids,
         sensitive=False,
-        visibility="public",
+        visibility="unlisted",
     )
 
     # Create subsequent post with table for visually impaired.
