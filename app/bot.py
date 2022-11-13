@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # Split into chunks of 500 characters based on sane break points.
     chunks = []
     while len(location_text) > 50:
-        chunk = location_text[:500]
+        chunk = location_text[:430]
         chunk = chunk[:chunk.rfind('\n')]
         chunks.append(chunk)
         location_text = location_text[len(chunk):]
