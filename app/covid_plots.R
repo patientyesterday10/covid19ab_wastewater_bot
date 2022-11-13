@@ -199,11 +199,11 @@ location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean
 #   facet_wrap(~location,scales="free_y")
 
 location_trends <- location_trends[,list(trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),last_perc=mean(last_perc)),by=c("location")]
-location_trends[,trend_label:=ifelse(trend>0.3,"Increasing",ifelse(trend<(-0.3),"Decreasing","Stable"))]
-location_trends[,value_label:=ifelse(last_perc>=0.85,"Very High",
-                                     ifelse(last_perc>0.70,"High",
+location_trends[,trend_label:=ifelse(trend>0.3,"increasing",ifelse(trend<(-0.3),"decreasing","stable"))]
+location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
+                                     ifelse(last_perc>0.70,"high",
                                             ifelse(last_perc>0.55,"Moderate",
-                                                   ifelse(last_perc>0.40,"Low","Very Low"))))]
+                                                   ifelse(last_perc>0.40,"Low","Very low"))))]
 location_trends <- location_trends[,list(location, value_label, trend_label, percentile = paste0(round(last_perc,2)*100,"%")),]
 setorder(location_trends,-percentile)
 
@@ -211,7 +211,7 @@ write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
 print(location_trends)
 
 writeLines(
-  paste0(location_trends[,list(label=paste0(location,": ", value_label, " (",percentile,"), Trend:", trend_label)),]$label, collapse="\n"),
+  paste0(c("Summary of level and trend by Location:",location_trends[,list(label=paste0(" - ",location,": ", value_label, " (",percentile,"), trend ", trend_label)),]$label), collapse="\n"),
     con="output/location_trends.txt")
 
 print("====== DONE ======")
