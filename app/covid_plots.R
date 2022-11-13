@@ -198,16 +198,25 @@ location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean
 #   geom_point(aes(y=n1_n2_mean,colour="Mean"))+
 #   facet_wrap(~location,scales="free_y")
 
+location_trends[,n1_n2_mean:=zoo::na.approx(n1_n2_mean,na.rm=FALSE,rule=2),by=c("location")]
+
 # Use kendall correlation with days to determine trend:
-location_trends <- location_trends[,list(trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),last_perc=mean(last_perc)),by=c("location")]
-location_trends[,trend_label:=ifelse(trend>0.3,"increasing",ifelse(trend<(-0.3),"decreasing","stable"))]
+location_trends <- location_trends[,list(
+  trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),
+  trend_detail=cor(day,n1_n2_mean,method="kendall",use="pairwise.complete.obs"),
+  last_perc=mean(last_perc)),by=c("location")]
+
+# this is ugly, problem is we don't want to miss recent trends:
+location_trends[,avg_trend:=(trend+trend_detail)/2,]
+location_trends[,trend_label:=ifelse(avg_trend>0.3,"increasing",ifelse(avg_trend<(-0.3),"decreasing","stable"))]
+location_trends[trend*trend_detail<0 & abs(trend)+abs(trend_detail)>0.5,trend_label:="unstable"]
 
 # Categorize current levels based on percentiles:
 location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
                                      ifelse(last_perc>0.70,"High",
                                             ifelse(last_perc>0.55,"Moderate",
                                                    ifelse(last_perc>0.40,"Low","Very low"))))]
-location_trends <- location_trends[,list(location, value_label, trend_label, percentile = paste0(round(last_perc,2)*100,"%")),]
+location_trends <- location_trends[,list(location, value_label, trend_label, percentile = paste0(round(last_perc,2)*100,"%ile")),]
 setorder(location_trends,-percentile)
 
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
@@ -238,7 +247,9 @@ writeLines(
 if (require(knitr)) {
   setnames(location_trends, c("location", "value_label", "trend_label", "percentile"), c("Location", "Level", "Trend", "Percentile"))
   location_table <- knitr::kable(location_trends,format = "markdown",align = c("l","c","c","c"),caption = "Summary of level and trend by Location")
+  location_table <- stringr::str_replace_all(location_table,"%ile","")
   writeLines(location_table, con="output/location_trends.md")
+
   print(location_table)
 }
 
