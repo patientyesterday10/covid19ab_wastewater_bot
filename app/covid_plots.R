@@ -204,17 +204,24 @@ location_trends[,trend_label:=ifelse(trend>0.3,"increasing",ifelse(trend<(-0.3),
 
 # Categorize current levels based on percentiles:
 location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
-                                     ifelse(last_perc>0.70,"high",
+                                     ifelse(last_perc>0.70,"High",
                                             ifelse(last_perc>0.55,"Moderate",
                                                    ifelse(last_perc>0.40,"Low","Very low"))))]
 location_trends <- location_trends[,list(location, value_label, trend_label, percentile = paste0(round(last_perc,2)*100,"%")),]
 setorder(location_trends,-percentile)
 
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
-print(location_trends)
 
 writeLines(
   paste0(c("Summary of level and trend by Location:",location_trends[,list(label=paste0(" - ",location,": ", value_label, " (",percentile,"), trend ", trend_label)),]$label), collapse="\n"),
     con="output/location_trends.txt")
+
+# Create markdown table of location trends:
+if (require(knitr)) {
+  setnames(location_trends, c("location", "value_label", "trend_label", "percentile"), c("Location", "Level", "Trend", "Percentile"))
+  location_table <- knitr::kable(location_trends,format = "markdown",align = c("l","c","c","c"),caption = "Summary of level and trend by Location")
+  writeLines(location_table, con="output/location_trends.md")
+  print(location_table)
+}
 
 print("====== DONE ======")
