@@ -36,11 +36,6 @@ get_ma <- function(dt,cols,window=14){
                    c(.(date = as.Date(i.date,origin="1970-01-01")), lapply(.SD, mean, na.rm=T)), .SDcols = cols, by = .EACHI][,-(1:2)])
 }
 
-
-test <- data.table(date=seq(Sys.Date()-14,Sys.Date(),by=1),value=seq(1,15,by=1))
-
-get_ma(test,cols=c("value"),window=3)
-
 dt_ma = rbindlist(apply(unique(dt[,list(location,data_type)]),MARGIN = 1,FUN = function(x){
   df = dt[location==x['location'] & data_type==x['data_type'],]
 
@@ -166,5 +161,52 @@ p_edmonton <- ggplot(plot_data[location %in% c("Edmonton")],aes(x=date))+
 ggsave(filename = paste0("output/edmonton_wastewater.png"),
        plot = p_edmonton,
        width=10,height=8,units = "in",dpi=150)
+
+
+p_data <- unique(plot_data[!grepl(".+WT Plant",location,perl=T),list(location,max_date,last_perc),])
+setorder(p_data,last_perc)
+
+p_data[,label:=paste0(location," (",strftime(max_date, "%b %e"),")")]
+p_data[,location:=factor(location,levels=p_data$location,labels = p_data$label)]
+p_data[,label_colour:=ifelse(last_perc>=0.55,ifelse(last_perc>0.85,"#ff0000","#000000"),"#ffffff")]
+
+p_table <- ggplot(p_data,aes(y=location,x=1))+geom_tile(aes(fill=last_perc))+
+  scale_fill_viridis_c(option = "viridis",name="Percentile",values = c(0,1))+
+  geom_text(aes(label=formatC(last_perc,digits=2,format='f')),colour=p_data$label_colour)+
+  ylab("Location")+
+  xlab("Quantile")+
+  theme(axis.text.x =element_blank(), axis.ticks.x=element_blank(),legend.position = "none")+
+  labs(title="COVID19 Wastewater",
+       subtitle="Quantile by Location",
+            caption="Quantile: fraction of days below the latest value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
+
+
+ggsave(filename = paste0("output/percentile_table.png"),
+       plot = p_table,
+       width=550,height=425,units = "px",dpi=100)
+
+
+# Calculate if values are increasing or decreasing by location in past two week:
+location_trends <- plot_data[!grepl(".+WT Plant", location, perl=T) & date>(max_date-14),list(location,date,n1_n2_mean,n1_n2_mean_ma,last_perc)]
+location_trends[,day:=as.numeric(date-min(date)),by=c("location")]
+location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean)]
+
+location_trends <- location_trends[,list(trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),last_perc=mean(last_perc)),by=c("location")]
+location_trends[,trend_label:=ifelse(trend>0.3,"Increasing",ifelse(trend<(-0.3),"Decreasing","Stable"))]
+location_trends[,value_label:=ifelse(last_perc>=0.85,"Very High",
+                                     ifelse(last_perc>0.70,"High",
+                                            ifelse(last_perc>0.55,"Moderate",
+                                                   ifelse(last_perc>0.40,"Low","Very Low"))))]
+location_trends <- location_trends[,list(location, value_label, trend_label, percentile = paste0(round(last_perc,2)*100,"%")),]
+setorder(location_trends,-percentile)
+
+write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
+
+# Debugging (look at plots):
+ggplot(location_trends,aes(x=day))+
+  geom_line(aes(y=trend_param,colour="Trend"))+
+  geom_line(aes(y=n1_n2_mean_ma,colour="MA"))+
+  geom_point(aes(y=n1_n2_mean,colour="Mean"))+
+  facet_wrap(~location,scales="free_y")
 
 print("====== DONE ======")
