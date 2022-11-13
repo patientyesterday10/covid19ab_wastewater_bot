@@ -191,6 +191,13 @@ location_trends <- plot_data[!grepl(".+WT Plant", location, perl=T) & date>(max_
 location_trends[,day:=as.numeric(date-min(date)),by=c("location")]
 location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean)]
 
+# Debugging (look at plots):
+# ggplot(location_trends,aes(x=day))+
+#   geom_line(aes(y=trend_param,colour="Trend"))+
+#   geom_line(aes(y=n1_n2_mean_ma,colour="MA"))+
+#   geom_point(aes(y=n1_n2_mean,colour="Mean"))+
+#   facet_wrap(~location,scales="free_y")
+
 location_trends <- location_trends[,list(trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),last_perc=mean(last_perc)),by=c("location")]
 location_trends[,trend_label:=ifelse(trend>0.3,"Increasing",ifelse(trend<(-0.3),"Decreasing","Stable"))]
 location_trends[,value_label:=ifelse(last_perc>=0.85,"Very High",
@@ -202,11 +209,8 @@ setorder(location_trends,-percentile)
 
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
 
-# Debugging (look at plots):
-ggplot(location_trends,aes(x=day))+
-  geom_line(aes(y=trend_param,colour="Trend"))+
-  geom_line(aes(y=n1_n2_mean_ma,colour="MA"))+
-  geom_point(aes(y=n1_n2_mean,colour="Mean"))+
-  facet_wrap(~location,scales="free_y")
+print(location_trends)
+
+
 
 print("====== DONE ======")
