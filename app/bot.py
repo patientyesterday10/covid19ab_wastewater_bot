@@ -25,21 +25,27 @@ if __name__ == "__main__":
         mdon.media_post("/tmp/output/ab_wastewater.png",
                         mime_type="image/png",
                         file_name="ab_wastewater.png",
-                        description="Alberta COVID19 Wastewater Trends. Data Source: https://covid-tracker.chi-csm.ca/",
+                        description="Alberta COVID19 Wastewater Trends",
                         )
     )
+
+    with open("/tmp/output/calgary_wastewater.txt", "r") as f:
+        yyc_caption = f.read()
 
     media_ids.append(
         mdon.media_post("/tmp/output/calgary_wastewater.png",
                         mime_type="image/png",
-                        description="Calgary COVID19 Wastewater Trends. Data Source: https://covid-tracker.chi-csm.ca/",
+                        description=yyc_caption,
                         file_name="calgary_wastewater.png")
     )
+
+    with open("/tmp/output/edmonton_wastewater.txt", "r") as f:
+        yeg_caption = f.read()
 
     media_ids.append(
         mdon.media_post("/tmp/output/edmonton_wastewater.png",
                         mime_type="image/png",
-                        description="Edmonton COVID19 Wastewater Trends. Data Source: https://covid-tracker.chi-csm.ca/",
+                        description=yeg_caption,
                         file_name="edmonton_wastewater.png")
     )
 
