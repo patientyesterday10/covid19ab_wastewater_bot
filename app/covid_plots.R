@@ -216,6 +216,24 @@ writeLines(
   paste0(location_trends[,list(label=paste0("- ",location,": ", value_label, " (",percentile,") & ", trend_label)),]$label, collapse="\n"),
     con="output/location_trends.txt")
 
+edm <- location_trends[location=="Edmonton",]
+writeLines(
+paste0(
+  c("Edmonton COVID19 Wastewater: Level is ",
+    tolower(edm$value_label),
+    " (",edm$percentile,"), trend is ",
+    edm$trend_label,"."),collapse=""),
+con="output/edmonton_wastewater.txt")
+
+cal <- location_trends[location=="Calgary",]
+writeLines(
+  paste0(
+  c("Calgary COVID19 Wastewater: Level is ",
+    tolower(cal$value_label),
+    " (",cal$percentile,"), trend is ",
+    cal$trend_label,"."),collapse=""),
+    con="output/calgary_wastewater.txt")
+
 # Create markdown table of location trends:
 if (require(knitr)) {
   setnames(location_trends, c("location", "value_label", "trend_label", "percentile"), c("Location", "Level", "Trend", "Percentile"))
