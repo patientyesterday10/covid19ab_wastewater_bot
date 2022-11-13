@@ -186,8 +186,8 @@ ggsave(filename = paste0("output/percentile_table.png"),
        width=550,height=425,units = "px",dpi=100)
 
 
-# Calculate if values are increasing or decreasing by location in past two week:
-location_trends <- plot_data[!grepl(".+WT Plant", location, perl=T) & date>(max_date-14),list(location,date,n1_n2_mean,n1_n2_mean_ma,last_perc)]
+# Calculate if values are increasing or decreasing by location in past 10 days:
+location_trends <- plot_data[!grepl(".+WT Plant", location, perl=T) & date>(max_date-10),list(location,date,n1_n2_mean,n1_n2_mean_ma,last_perc)]
 location_trends[,day:=as.numeric(date-min(date)),by=c("location")]
 location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean)]
 
@@ -213,7 +213,7 @@ setorder(location_trends,-percentile)
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
 
 writeLines(
-  paste0(c("Summary of level and trend by Location:",location_trends[,list(label=paste0(" - ",location,": ", value_label, " (",percentile,"), trend ", trend_label)),]$label), collapse="\n"),
+  paste0(location_trends[,list(label=paste0(" - ",location,": ", value_label, " (",percentile,"), trend ", trend_label)),]$label, collapse="\n"),
     con="output/location_trends.txt")
 
 # Create markdown table of location trends:

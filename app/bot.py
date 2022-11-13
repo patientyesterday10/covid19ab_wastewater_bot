@@ -54,7 +54,7 @@ if __name__ == "__main__":
                 datetime.now().strftime("%Y-%m-%d")),
         media_ids=media_ids,
         sensitive=False,
-        visibility="unlisted",
+        visibility="public",
     )
 
     # Create subsequent post with table for visually impaired.
@@ -78,7 +78,12 @@ if __name__ == "__main__":
             status=chunk,
             in_reply_to_id=reply_post_id,
             visibility="unlisted",
-            sensitive=False
+            sensitive=False,
+            spoiler_text="Summary of level and trend by Location for {}, part {} of {}:".format(
+                datetime.now().strftime("%Y-%m-%d"),
+                chunks.index(chunk) + 1,
+                len(chunks)
+            )
         )
 
     logger.info("Done.")
