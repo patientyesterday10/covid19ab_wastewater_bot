@@ -64,11 +64,13 @@ if __name__ == "__main__":
 
     # Split into chunks of 500 characters based on sane break points.
     chunks = []
-    while len(location_text) > 0:
+    while len(location_text) > 50:
         chunk = location_text[:500]
         chunk = chunk[:chunk.rfind('\n')]
         chunks.append(chunk)
         location_text = location_text[len(chunk):]
+    # Append last location chunk.
+    chunks.append(location_text)
 
     reply_post_id = main_post['id']
     for chunk in chunks:
