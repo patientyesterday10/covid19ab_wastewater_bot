@@ -64,8 +64,8 @@ if __name__ == "__main__":
 
     # Split into chunks of 500 characters based on sane break points.
     chunks = []
-    while len(location_text) > 430:
-        chunk = location_text[:430]
+    while len(location_text) > 450:
+        chunk = location_text[:450]
         chunk = chunk[:chunk.rfind('\n')]
         chunks.append(chunk)
         location_text = location_text[len(chunk):]
@@ -79,7 +79,7 @@ if __name__ == "__main__":
             in_reply_to_id=reply_post_id,
             visibility="unlisted",
             sensitive=False,
-            spoiler_text="Summary of level and trend by Location for {}, part {} of {}:".format(
+            spoiler_text="Location reading and trends for {}, {}/{}:".format(
                 datetime.now().strftime("%Y-%m-%d"),
                 chunks.index(chunk) + 1,
                 len(chunks)
