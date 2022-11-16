@@ -52,7 +52,7 @@ if __name__ == "__main__":
     logger.info("Posting Status to Mastodon.")
 
     main_post = mdon.status_post(
-        spoiler_text="#COVID19AB Wastewater Trends}",
+        spoiler_text="#COVID19AB Wastewater Trends",
         status="Alberta #COVID19 Wastewater Update for {}."
                "\n"
                "Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
