@@ -52,7 +52,8 @@ if __name__ == "__main__":
     logger.info("Posting Status to Mastodon.")
 
     main_post = mdon.status_post(
-        status="Alberta #COVID19 Wastewater Update for {}:\n"
+        spoiler_text="#COVID19AB Wastewater Trends}",
+        status="Alberta #COVID19 Wastewater Update for {}."
                "\n"
                "Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
                "Percentile values reflect where the reading falls within the distribution of samples from that "
@@ -84,7 +85,7 @@ if __name__ == "__main__":
             status=chunk,
             in_reply_to_id=reply_post_id,
             visibility="unlisted",
-            sensitive=False,
+            sensitive=True,
             spoiler_text="Location reading and trends for {}, {}/{}:".format(
                 datetime.now().strftime("%Y-%m-%d"),
                 chunks.index(chunk) + 1,
