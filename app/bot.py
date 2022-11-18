@@ -110,7 +110,7 @@ if __name__ == "__main__":
                         description="Alberta Influenza A Wastewater Trends",
                         )
     )
-    try:
+    if os.path.exists("/tmp/output/ab_influenza_b.png"):
         media_ids.append(
             mdon.media_post("/tmp/output/ab_influenza_b.png",
                             mime_type="image/png",
@@ -118,9 +118,8 @@ if __name__ == "__main__":
                             description="Alberta Influenza B Wastewater Trends",
                             )
         )
-    except FileNotFoundError as e:
+    else:
         logger.warning("No non-zero Influenza B data yet.")
-        pass
 
     media_ids.append(
         mdon.media_post("/tmp/output/ab_rsv.png",
@@ -132,7 +131,7 @@ if __name__ == "__main__":
 
 
     main_post = mdon.status_post(
-        spoiler_text="Alberta Influenza and RSV Trends",
+        spoiler_text="Alberta Influenza & RSV Trends",
         status="Alberta Influenza / RSV Wastewater Update for {}."
                "\n"
                "Figures show the level of virus detected in wastewater sampling across Alberta. "
