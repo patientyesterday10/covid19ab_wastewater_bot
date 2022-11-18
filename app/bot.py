@@ -58,13 +58,13 @@ if __name__ == "__main__":
 
     logger.info("Posting Status to Mastodon.")
 
-    status_covid = "COVID19 Wastewater Update for {}:"
-    "\n"
-    "Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
-    "Percentile values reflect where the reading falls within the distribution of samples from that "
-    "location.\n\n#Covid19AB #Alberta #Wastewater #COVID19 #SARSCoV2\n"
-    "Data Source: https://covid-tracker.chi-csm.ca/".format(
-        datetime.now().strftime("%Y-%m-%d"))
+    today = datetime.now().strftime("%Y-%m-%d")
+    status_covid = \
+    f"COVID19 Wastewater Update for {today}:\n\n"
+    f"Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
+    f"Percentile values reflect where the reading falls within the distribution of samples from that location.\n\n"
+    f"#Covid19AB #Alberta #Wastewater #COVID19 #SARSCoV2\n"
+    f"Data Source: https://covid-tracker.chi-csm.ca/"
 
     # Check if length exceeds 500 characters, if so remove hashtags using Regex:
     if len(status_covid) > 500:
@@ -139,12 +139,13 @@ if __name__ == "__main__":
                         )
     )
 
-    status_flu_rsv = "Influenza & RSV Wastewater Update for {}."
-    "\n"
-    "Figures show the level of virus detected in wastewater sampling across Alberta. "
-    "Percentile values reflect where the reading falls within the distribution of samples from that "
-    "location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater".format(
-        datetime.now().strftime("%Y-%m-%d"))
+    today = datetime.now().strftime("%Y-%m-%d")
+    status_flu_rsv = \
+        f"Influenza & RSV Wastewater Update for {today}.\n"
+    f"Figures show the level of virus detected in wastewater sampling across Alberta. "
+    f"Percentile values reflect where the reading falls within the distribution of samples from that location.\n\n"
+    f"Data Source: https://covid-tracker.chi-csm.ca/\n"
+    f"#Influenza #RSV #Alberta #Wastewater"
 
     # Check if length exceeds 500 characters, if so remove hashtags using Regex:
     if len(status_flu_rsv) > 500:
