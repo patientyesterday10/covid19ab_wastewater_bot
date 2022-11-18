@@ -59,7 +59,7 @@ if __name__ == "__main__":
     logger.info("Posting Status to Mastodon.")
 
     today = datetime.now().strftime("%Y-%m-%d")
-    status_covid = "COVID19 Wastewater Update for {today}:\n\nFigures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\n#Covid19AB #Alberta #Wastewater #COVID19 #SARSCoV2\nData Source: https://covid-tracker.chi-csm.ca/"
+    status_covid = f"COVID19 Wastewater Update for {today}:\n\nFigures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\n#Covid19AB #Alberta #Wastewater #COVID19 #SARSCoV2\nData Source: https://covid-tracker.chi-csm.ca/"
 
     # Check if length exceeds 500 characters, if so remove hashtags using Regex:
     if len(status_covid) > 500:
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     )
 
     today = datetime.now().strftime("%Y-%m-%d")
-    status_flu_rsv = "Influenza & RSV Wastewater Update for {today}.\nFigures show the level of virus detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater"
+    status_flu_rsv = f"Influenza & RSV Wastewater Update for {today}.\nFigures show the level of virus detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater"
 
     # Check if length exceeds 500 characters, if so remove hashtags using Regex:
     if len(status_flu_rsv) > 500:
