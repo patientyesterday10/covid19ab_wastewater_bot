@@ -208,8 +208,8 @@ location_trends <- location_trends[,list(
 
 # this is ugly, problem is we don't want to miss recent trends:
 location_trends[,avg_trend:=(trend+trend_detail)/2,]
-location_trends[,trend_label:=ifelse(avg_trend>0.3,"increasing",ifelse(avg_trend<(-0.3),"decreasing","stable"))]
-location_trends[trend*trend_detail<0 & abs(trend)+abs(trend_detail)>0.5,trend_label:="unstable"]
+location_trends[,trend_label:=ifelse(avg_trend>0.3,"increasing",ifelse(avg_trend<(-0.3),"decreasing",""))]
+location_trends[trend*trend_detail<0 & abs(trend)+abs(trend_detail)>0.5,trend_label:=""]
 
 # Categorize current levels based on percentiles:
 location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
@@ -222,7 +222,7 @@ setorder(location_trends,-percentile)
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
 
 writeLines(
-  paste0(location_trends[,list(label=paste0("- ",location,": ", value_label, " (",percentile,") & ", trend_label)),]$label, collapse="\n"),
+  paste0(location_trends[,list(label=paste0("- ",location,": ", value_label, " (",percentile,")",ifelse(trend_label=="",""," & "), trend_label)),]$label, collapse="\n"),
     con="output/location_trends.txt")
 
 edm <- location_trends[location=="Edmonton",]
