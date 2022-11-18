@@ -49,6 +49,13 @@ if __name__ == "__main__":
                         file_name="edmonton_wastewater.png")
     )
 
+    media_ids.append(
+        mdon.media_post("/tmp/output/percentile_table.png",
+                        mime_type="image/png",
+                        description="Percentiles by Location for Alberta COVID19 Wastewater Trends",
+                        file_name="percentile_table.png")
+    )
+
     logger.info("Posting Status to Mastodon.")
 
     main_post = mdon.status_post(
