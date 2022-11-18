@@ -93,4 +93,48 @@ if __name__ == "__main__":
             )
         )
 
+    logger.info("Posting Influenza 'A' Trends.")
+    media_ids = []
+
+    media_ids.append(
+        mdon.media_post("/tmp/output/ab_influenza_a.png",
+                        mime_type="image/png",
+                        file_name="ab_influenza_a.png",
+                        description="Alberta Influenza A Wastewater Trends",
+                        )
+    )
+    try:
+        media_ids.append(
+            mdon.media_post("/tmp/output/ab_influenza_b.png",
+                            mime_type="image/png",
+                            file_name="ab_influenza_b.png",
+                            description="Alberta Influenza B Wastewater Trends",
+                            )
+        )
+    except FileNotFoundError as e:
+        logger.warning("No non-zero Influenza B data yet.")
+        pass
+
+    media_ids.append(
+        mdon.media_post("/tmp/output/ab_rsv.png",
+                        mime_type="image/png",
+                        file_name="ab_rsv.png",
+                        description="Alberta RSV Wastewater Trends",
+                        )
+    )
+
+
+    main_post = mdon.status_post(
+        spoiler_text="Alberta Influenza and RSV Trends",
+        status="Alberta Influenza / RSV Wastewater Update for {}."
+               "\n"
+               "Figures show the level of virus detected in wastewater sampling across Alberta. "
+               "Percentile values reflect where the reading falls within the distribution of samples from that "
+               "location.\nData Source: https://covid-tracker.chi-csm.ca/".format(
+            datetime.now().strftime("%Y-%m-%d")),
+        media_ids=media_ids,
+        sensitive=False,
+        visibility="unlisted",
+    )
+
     logger.info("Done.")
