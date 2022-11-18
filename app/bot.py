@@ -58,14 +58,24 @@ if __name__ == "__main__":
 
     logger.info("Posting Status to Mastodon.")
 
+    status_covid = "COVID19 Wastewater Update for {}:"
+    "\n"
+    "Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
+    "Percentile values reflect where the reading falls within the distribution of samples from that "
+    "location.\n\n#Covid19AB #Alberta #Wastewater #COVID19 #SARSCoV2\n"
+    "Data Source: https://covid-tracker.chi-csm.ca/".format(
+        datetime.now().strftime("%Y-%m-%d"))
+
+    # Check if length exceeds 500 characters, if so remove hashtags using Regex:
+    if len(status_covid) > 500:
+        logger.warning("Status exceeds 500 characters, COVID19 post will be truncated.")
+        import re
+        while len(status_covid)>500:
+            status_covid = re.sub(r"#\w+", "", status_covid, count=1)
+
     main_post = mdon.status_post(
-        spoiler_text="#COVID19AB Wastewater Trends",
-        status="Alberta #COVID19 Wastewater Update for {}."
-               "\n"
-               "Figures show the level of SARS-COV-2 RNA detected in wastewater sampling across Alberta. "
-               "Percentile values reflect where the reading falls within the distribution of samples from that "
-               "location.\n#Covid19AB\nData Source: https://covid-tracker.chi-csm.ca/".format(
-                datetime.now().strftime("%Y-%m-%d")),
+        spoiler_text="Alberta COVID19 Wastewater Trends",
+        status=status_covid,
         media_ids=media_ids,
         sensitive=False,
         visibility="unlisted",
@@ -125,19 +135,27 @@ if __name__ == "__main__":
         mdon.media_post("/tmp/output/ab_rsv.png",
                         mime_type="image/png",
                         file_name="ab_rsv.png",
-                        description="Alberta RSV Wastewater Trends",
+                        description="Alberta RSV iastewater Trends",
                         )
     )
 
+    status_flu_rsv = "Influenza & RSV Wastewater Update for {}."
+    "\n"
+    "Figures show the level of virus detected in wastewater sampling across Alberta. "
+    "Percentile values reflect where the reading falls within the distribution of samples from that "
+    "location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater".format(
+        datetime.now().strftime("%Y-%m-%d"))
+
+    # Check if length exceeds 500 characters, if so remove hashtags using Regex:
+    if len(status_flu_rsv) > 500:
+        logger.warning("Status exceeds 500 characters, Influenza / RSV post will be truncated.")
+        import re
+        while len(status_flu_rsv)>500:
+            status_flu_rsv = re.sub(r"#\w+", "", status_flu_rsv, count=1)
 
     main_post = mdon.status_post(
         spoiler_text="Alberta Influenza & RSV Trends",
-        status="Alberta Influenza / RSV Wastewater Update for {}."
-               "\n"
-               "Figures show the level of virus detected in wastewater sampling across Alberta. "
-               "Percentile values reflect where the reading falls within the distribution of samples from that "
-               "location.\nData Source: https://covid-tracker.chi-csm.ca/".format(
-            datetime.now().strftime("%Y-%m-%d")),
+        status= status_flu_rsv,
         media_ids=media_ids,
         sensitive=False,
         visibility="unlisted",

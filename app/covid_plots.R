@@ -178,7 +178,7 @@ p_table <- ggplot(p_data,aes(y=location,x=1))+geom_tile(aes(fill=last_perc))+
   theme(axis.text.x =element_blank(), axis.ticks.x=element_blank(),legend.position = "none")+
   labs(title="COVID19 Wastewater",
        subtitle="Quantile by Location",
-            caption="Quantile: fraction of days below the latest value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
+            caption="Quantile: fraction of days below the latest value for each location\nData Source: CHI-CSM, University of Calgary")
 
 
 ggsave(filename = paste0("output/percentile_table.png"),
@@ -190,13 +190,6 @@ ggsave(filename = paste0("output/percentile_table.png"),
 location_trends <- plot_data[!grepl(".+WT Plant", location, perl=T) & date>(max_date-10),list(location,date,n1_n2_mean,n1_n2_mean_ma,last_perc)]
 location_trends[,day:=as.numeric(date-min(date)),by=c("location")]
 location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean)]
-
-# Debugging (look at plots):
-# ggplot(location_trends,aes(x=day))+
-#   geom_line(aes(y=trend_param,colour="Trend"))+
-#   geom_line(aes(y=n1_n2_mean_ma,colour="MA"))+
-#   geom_point(aes(y=n1_n2_mean,colour="Mean"))+
-#   facet_wrap(~location,scales="free_y")
 
 location_trends[,n1_n2_mean:=zoo::na.approx(n1_n2_mean,na.rm=FALSE,rule=2),by=c("location")]
 
