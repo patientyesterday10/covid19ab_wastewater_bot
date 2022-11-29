@@ -126,6 +126,15 @@ if __name__ == "__main__":
     else:
         logger.warning("No non-zero Influenza B data yet.")
 
+
+    media_ids.append(
+        mdon.media_post("/tmp/output/ab_rsv.png",
+                        mime_type="image/png",
+                        file_name="ab_rsv.png",
+                        description="Alberta RSV Wastewater Trends",
+                        )
+    )
+
     if os.path.exists("/tmp/output/ab_viruses.png"):
         media_ids.append(
             mdon.media_post("/tmp/output/ab_viruses.png",

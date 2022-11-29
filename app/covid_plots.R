@@ -219,6 +219,7 @@ writeLines(
     con="output/location_trends.txt")
 
 edm <- location_trends[location=="Edmonton",]
+if(edm$trend_label == ""){edm$trend_label <- "unstable"}
 writeLines(
 paste0(
   c("Edmonton COVID19 Wastewater: Level is ",
@@ -228,6 +229,7 @@ paste0(
 con="output/edmonton_wastewater.txt")
 
 cal <- location_trends[location=="Calgary",]
+if(cal$trend_label == ""){cal$trend_label <- "unstable"}
 writeLines(
   paste0(
   c("Calgary COVID19 Wastewater: Level is ",
