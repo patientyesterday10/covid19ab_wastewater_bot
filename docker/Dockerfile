@@ -109,6 +109,7 @@ COPY app/bot.py /app/bot.py
 COPY app/covid_plots.R /app/covid_plots.R
 COPY app/influenza_plots.R /app/influenza_plots.R
 COPY app/rsv_plots.R /app/rsv_plots.R
+COPY app/combined_viruses.R /app/combined_viruses.R
 COPY app/run.sh /app/run.sh
 
 # User settings
