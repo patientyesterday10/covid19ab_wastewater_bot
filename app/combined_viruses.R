@@ -183,13 +183,6 @@ unique(combined$location)
 
 plot_data <- melt(combined,id.vars = c("location","date"))
 
-ggplot(plot_data[location=="Bonnybrook WT Plant",],aes(x=date,y=value,colour=variable))+
-  geom_line(lwd=0.8)+
-  geom_point()+
-  theme_bw()+
-  labs(title="Bonnybrook (Calgary): COVID19, Influenza A, and RSV",subtitle = "Values normalized between 0-1",caption = "Data Source: CHI-CSM, University of Calgary")
-
-
 p <- ggplot(plot_data[date>=Sys.Date()-90,],aes(x=date,y=value,colour=variable))+
   geom_line()+
   facet_wrap(~location)+
