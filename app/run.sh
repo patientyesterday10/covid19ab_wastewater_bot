@@ -5,6 +5,7 @@ echo "Running R-script to generate plots..."
 /usr/bin/Rscript /app/covid_plots.R
 /usr/bin/Rscript /app/influenza_plots.R
 /usr/bin/Rscript /app/rsv_plots.R
+/usr/bin/Rscript /app/combined_viruses.R
 
 # List /tmp directory for reference:
 echo "Listing /tmp directory..."
