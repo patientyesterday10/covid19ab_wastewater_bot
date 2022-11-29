@@ -126,13 +126,16 @@ if __name__ == "__main__":
     else:
         logger.warning("No non-zero Influenza B data yet.")
 
-    media_ids.append(
-        mdon.media_post("/tmp/output/ab_rsv.png",
-                        mime_type="image/png",
-                        file_name="ab_rsv.png",
-                        description="Alberta RSV iastewater Trends",
-                        )
-    )
+    if os.path.exists("/tmp/output/ab_viruses.png"):
+        media_ids.append(
+            mdon.media_post("/tmp/output/ab_viruses.png",
+                            mime_type="image/png",
+                            file_name="ab_viruses.png",
+                            description="Alberta Normalized Virus Wastewater Trends (SARS-CoV-2, Influenza, and RSV)",
+                            )
+        )
+    else:
+        logger.warning("No combined virus plot available.")
 
     today = datetime.now().strftime("%Y-%m-%d")
     status_flu_rsv = f"Influenza & RSV Wastewater Update for {today}.\nFigures show the level of virus detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater"
