@@ -192,7 +192,7 @@ p <- ggplot(plot_data[date>=Sys.Date()-90,],aes(x=date,y=value,colour=variable))
   scale_x_date(name="Date",date_breaks="3 months", date_minor_breaks = "1 month",date_labels = "%b")+
   scale_color_discrete(name="Virus")
 
-ggsave(filename = paste0("output/ab_viruses.png"),plot = p, width=8,height=8,units = "in",dpi=150)
+ggsave(filename = paste0("output/ab_viruses.png"),plot = p, width=10,height=8,units = "in",dpi=150)
 
 
 p <- ggplot(plot_data[location %in% c("Bonnybrook WT Plant","Pine Creek WT Plant","Fish Creek WT Plant")],aes(x=date,y=value,colour=variable))+
