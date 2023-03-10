@@ -1,7 +1,7 @@
 name: Scheduled Post to Mastodon
 on:
   schedule:
-    - cron: "0 13 * * *"
+    - cron: "1 13 * * *"
     #- cron: "15 3 * * 6"
   workflow_dispatch:
 
