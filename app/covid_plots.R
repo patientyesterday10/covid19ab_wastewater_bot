@@ -27,6 +27,11 @@ ab_wastewater[,location:=stringr::str_replace_all(string = location,"Wastewater 
 ab_wastewater[location=="Fort Saskatchewan",location:="Capital Reg."]
 setorder(ab_wastewater,date)
 
+# Filter out locations that haven't updated in the past 30 days:
+ab_wastewater[,last_date:=max(date,na.rm=T),by=c("location")]
+ab_wastewater <- ab_wastewater[last_date>=Sys.Date()-30,]
+
+
 dt <- copy(ab_wastewater)
 
 # Calculate 3-observation rolling average:
