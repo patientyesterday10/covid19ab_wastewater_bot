@@ -214,8 +214,8 @@ location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
                                      ifelse(last_perc>0.70,"High",
                                             ifelse(last_perc>0.55,"Moderate",
                                                    ifelse(last_perc>0.40,"Low","Very low"))))]
-location_trends <- location_trends[,list(location, value_label, trend_label, percentile = paste0(round(last_perc,2)*100,"%ile")),]
-setorder(location_trends,-percentile)
+location_trends <- location_trends[,list(location, value_label, trend_label, last_perc, percentile = paste0(round(last_perc,2)*100,"%ile")),]
+setorder(location_trends, -last_perc)
 
 write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
 
@@ -247,7 +247,7 @@ writeLines(
 if (require(knitr)) {
   setnames(location_trends, c("location", "value_label", "trend_label", "percentile"), c("Location", "Level", "Trend", "Percentile"))
   location_table <- knitr::kable(location_trends,format = "markdown",align = c("l","c","c","c"),caption = "Summary of level and trend by Location")
-  location_table <- stringr::str_replace_all(location_table,"%ile","")
+  location_table <- stringr::str_replace_all(location_table, "%ile", "")
   writeLines(location_table, con="output/location_trends.md")
 
   print(location_table)

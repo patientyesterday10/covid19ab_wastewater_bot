@@ -105,63 +105,66 @@ if __name__ == "__main__":
             )
         )
 
-    logger.info("Posting Influenza 'A' Trends.")
-    media_ids = []
+    # If we are in respiratory season ~ Sept - May, then post influenza trends:
+    if datetime.today().month >=9 or datetime.today().month <=5:
 
-    media_ids.append(
-        mdon.media_post("/tmp/output/ab_influenza_a.png",
-                        mime_type="image/png",
-                        file_name="ab_influenza_a.png",
-                        description="Alberta Influenza A Wastewater Trends",
-                        )
-    )
-    if os.path.exists("/tmp/output/ab_influenza_b.png"):
+        logger.info("Posting Influenza 'A' Trends.")
+        media_ids = []
+
         media_ids.append(
-            mdon.media_post("/tmp/output/ab_influenza_b.png",
+            mdon.media_post("/tmp/output/ab_influenza_a.png",
                             mime_type="image/png",
-                            file_name="ab_influenza_b.png",
-                            description="Alberta Influenza B Wastewater Trends",
+                            file_name="ab_influenza_a.png",
+                            description="Alberta Influenza A Wastewater Trends",
                             )
         )
-    else:
-        logger.warning("No non-zero Influenza B data yet.")
+        if os.path.exists("/tmp/output/ab_influenza_b.png"):
+            media_ids.append(
+                mdon.media_post("/tmp/output/ab_influenza_b.png",
+                                mime_type="image/png",
+                                file_name="ab_influenza_b.png",
+                                description="Alberta Influenza B Wastewater Trends",
+                                )
+            )
+        else:
+            logger.warning("No non-zero Influenza B data yet.")
 
 
-    media_ids.append(
-        mdon.media_post("/tmp/output/ab_rsv.png",
-                        mime_type="image/png",
-                        file_name="ab_rsv.png",
-                        description="Alberta RSV Wastewater Trends",
-                        )
-    )
-
-    if os.path.exists("/tmp/output/ab_viruses.png"):
         media_ids.append(
-            mdon.media_post("/tmp/output/ab_viruses.png",
+            mdon.media_post("/tmp/output/ab_rsv.png",
                             mime_type="image/png",
-                            file_name="ab_viruses.png",
-                            description="Alberta Normalized Virus Wastewater Trends (SARS-CoV-2, Influenza, and RSV)",
+                            file_name="ab_rsv.png",
+                            description="Alberta RSV Wastewater Trends",
                             )
         )
-    else:
-        logger.warning("No combined virus plot available.")
 
-    today = datetime.now().strftime("%Y-%m-%d")
-    status_flu_rsv = f"Influenza & RSV Wastewater Update for {today}.\nFigures show the level of virus detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater"
+        if os.path.exists("/tmp/output/ab_viruses.png"):
+            media_ids.append(
+                mdon.media_post("/tmp/output/ab_viruses.png",
+                                mime_type="image/png",
+                                file_name="ab_viruses.png",
+                                description="Alberta Normalized Virus Wastewater Trends (SARS-CoV-2, Influenza, and RSV)",
+                                )
+            )
+        else:
+            logger.warning("No combined virus plot available.")
 
-    # Check if length exceeds 500 characters, if so remove hashtags using Regex:
-    if len(status_flu_rsv) > 500:
-        logger.warning("Status exceeds 500 characters, Influenza / RSV post will be truncated.")
-        import re
-        while len(status_flu_rsv)>500:
-            status_flu_rsv = re.sub(r"#\w+", "", status_flu_rsv, count=1)
+        today = datetime.now().strftime("%Y-%m-%d")
+        status_flu_rsv = f"Influenza & RSV Wastewater Update for {today}.\nFigures show the level of virus detected in wastewater sampling across Alberta. Percentile values reflect where the reading falls within the distribution of samples from that location.\n\nData Source: https://covid-tracker.chi-csm.ca/\n#Influenza #RSV #Alberta #Wastewater"
 
-    main_post = mdon.status_post(
-        spoiler_text="Alberta Influenza & RSV Trends",
-        status= status_flu_rsv,
-        media_ids=media_ids,
-        sensitive=False,
-        visibility="unlisted",
-    )
+        # Check if length exceeds 500 characters, if so remove hashtags using Regex:
+        if len(status_flu_rsv) > 500:
+            logger.warning("Status exceeds 500 characters, Influenza / RSV post will be truncated.")
+            import re
+            while len(status_flu_rsv)>500:
+                status_flu_rsv = re.sub(r"#\w+", "", status_flu_rsv, count=1)
+
+        main_post = mdon.status_post(
+            spoiler_text="Alberta Influenza & RSV Trends",
+            status= status_flu_rsv,
+            media_ids=media_ids,
+            sensitive=False,
+            visibility="unlisted",
+        )
 
     logger.info("Done.")
