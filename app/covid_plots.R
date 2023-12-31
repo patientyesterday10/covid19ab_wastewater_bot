@@ -82,5 +82,5 @@ p <- ggplot(fits,aes(x=date))+
        caption=glue::glue("Data Source: Alberta Health, Alberta Precision Laboratories & Centre for Health Informatics\n{Sys.Date()}")
   )
 
-ggsave(glue::glue("ab_wastewater.png"),plot=p,units="in",width=10,height=4,dpi=150,scale = 1.2)
+ggsave("output/ab_wastewater.png",plot=p,units="in",width=10,height=4,dpi=150,scale = 1.2)
 
