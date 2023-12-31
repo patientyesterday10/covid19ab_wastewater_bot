@@ -1,256 +1,86 @@
-####################################################################################################
-# COVID19 Wasterwater Data for Alberta
-####################################################################################################
-
-# Load Packages
 library(data.table)
 library(jsonlite)
 library(ggplot2)
-library(patchwork)
+library(locfit)
 
-# Set working directory / output directory:
-setwd("/tmp")
-dir.create("/tmp/output")
-
-ab_wastewater <- rbindlist(
-  lapply(
-    jsonlite::read_json(
-      "https://covid-tracker-json.s3.us-west-2.amazonaws.com/wasteWaterAbData.json")$data,
-    FUN = function(x){
-      data.table(t(unlist(as.vector(x))))
-    }))
-ab_wastewater[,date:=as.Date(date),]
-ab_wastewater[,n1_mean:=as.numeric(n1_mean)]
-ab_wastewater[,n2_mean:=as.numeric(n2_mean)]
-ab_wastewater[,n1_n2_mean:=(n1_mean+n2_mean)/2]
-ab_wastewater[,location:=stringr::str_replace_all(string = location,"Wastewater Treatment Plant","WT Plant")]
-ab_wastewater[location=="Fort Saskatchewan",location:="Capital Reg."]
-setorder(ab_wastewater,date)
-
-# Filter out locations that haven't updated in the past 30 days:
-ab_wastewater[,last_date:=max(date,na.rm=T),by=c("location")]
-ab_wastewater <- ab_wastewater[last_date>=Sys.Date()-30,]
-
-
-dt <- copy(ab_wastewater)
-
-# Calculate 3-observation rolling average:
-get_ma <- function(dt,cols,window=14){
-  return(setDT(dt)[SJ(date = (min(date) + window):(max(date)))[, c("start", "end") := .(date - window, date)],
-                   on = .(date > start, date <= end),
-                   c(.(date = as.Date(i.date,origin="1970-01-01")), lapply(.SD, mean, na.rm=T)), .SDcols = cols, by = .EACHI][,-(1:2)])
+if(!exists("json_data")){
+  tmpfile <- tempfile(fileext = ".json")
+  download.file("https://chi-covid-data.pages.dev/aplWasteWaterAbData.json",tmpfile)
+  json_data <- jsonlite::read_json(tmpfile)$data
+  unlink(tmpfile)
+  rm(tmpfile)
 }
 
-dt_ma = rbindlist(apply(unique(dt[,list(location,data_type)]),MARGIN = 1,FUN = function(x){
-  df = dt[location==x['location'] & data_type==x['data_type'],]
-
-  df = get_ma(
-    dt = df,
-    cols=c("n1_mean","n2_mean","n1_n2_mean"),
-    window=7)
-  df$location = x['location']
-  df$data_type = x['data_type']
-  return(df)
+data <- rbindlist(lapply(names(json_data),function(x,data=json_data){
+  cbind(rbindlist(data[[x]]),location=x)
 }))
 
+rm(json_data)
 
-#dt_ma[,date:=as.Date(date,origin=as.Date("1970-01-01"))]
-setnames(dt_ma,c("n1_mean","n2_mean","n1_n2_mean"),c("n1_mean_ma","n2_mean_ma","n1_n2_mean_ma"))
+data[,date:=as.Date(date)]
+data[,t:=as.numeric(date-min(date)),by=c("location")]
 
-plot_data <- merge(dt, dt_ma, by=c("location","data_type","date"),all=T)
-preferred_data_type <- plot_data[date>=as.Date("2022-01-01"),list(data_type="raw"),by=c("location")]
-plot_data <- merge(plot_data,preferred_data_type,by=c("location","data_type"))
+fits <- rbindlist(lapply(unique(data$location),FUN = function(loc){
+  loc_data <- data[location==loc,list(date,t,avg,location)]
+  # Add data to extrapolate to current date:
+  addtl_days <- as.numeric(Sys.Date()-(max(loc_data$date)))
+  if(addtl_days>=1){
+    loc_data <-rbindlist(list(
+      loc_data,
+      data.table(date=seq(max(loc_data$date)+1,Sys.Date(),by=1),
+                 t=seq(from=max(as.numeric(loc_data$t))+1,to=max(as.numeric(loc_data$t))+addtl_days,by=1),
+                 avg=NA,
+                 location=loc
+                      )
+      ))
+  }
 
-plot_data[!is.finite(n1_n2_mean_ma) & is.finite(n1_n2_mean),n1_n2_mean_ma:=n1_n2_mean,]
-plot_data[,n1_n2_mean_ma:=zoo::na.locf(n1_n2_mean_ma,na.rm=F),by=c("location")]
-plot_data[,n1_mean_ma:=zoo::na.locf(n1_mean_ma,na.rm=F),by=c("location")]
-plot_data[,n2_mean_ma:=zoo::na.locf(n2_mean_ma,na.rm=F),by=c("location")]
 
-plot_data[is.finite(n1_n2_mean_ma),p_value:=rank(n1_n2_mean_ma)/sum(ifelse(is.finite(n1_n2_mean_ma),1,0)),by=c("location","data_type")]
-plot_data[n1_mean<1e-4,n1_mean:=NA]
-plot_data[n2_mean<1e-4,n2_mean:=NA]
+  fit <- locfit(avg ~ lp(t,nn=0.28), data=loc_data,mint=3,maxit=100,family="gaussian")
+  preds <- predict(fit,newdata=loc_data$t,se.fit=T,band="local")
 
-plot_data[,lowval:=ifelse(n1_mean<=n2_mean,n1_mean,n2_mean)]
-plot_data[,highval:=ifelse(n1_mean>=n2_mean,n1_mean,n2_mean)]
+  # CI interval 95%
+  ci_int = 0.95
+  z <- qnorm(1-((1-ci_int)/2))
+  ci_upper <- preds$fit + z * preds$se.fit
+  ci_lower <- preds$fit - z * preds$se.fit
 
-plot_data[,max_date:=max(date),by="location"]
-plot_data[,last_perc:=mean(ifelse(date==max_date,p_value,NA),na.rm=T),by=c("location")]
-plot_data[,location_label:=paste0(location," (P",round(last_perc*100,0),", ", strftime(max_date,"%b %e") ,")")]
+  # Combine results into a dataframe
+  results <- data.frame(time = loc_data$t,
+                        date = loc_data$date,
+                        avg = loc_data$avg,
+                        fit = preds$fit,
+                        ci_lower = ci_lower,
+                        ci_upper = ci_upper,
+                        location = loc)
 
-p <- ggplot(plot_data[date>=Sys.Date()-90 & !grepl("WT Plant",location),],aes(x=date))+
-  geom_col(aes(y=n1_n2_mean_ma,fill=p_value))+
-  geom_point(data=plot_data[date>=Sys.Date()-90 & !grepl("WT Plant",location) & date>=max_date-7,],
-             aes(y=n1_mean,shape="N1"),colour="grey30",alpha=0.75,size=1)+
-  geom_point(data=plot_data[date>=Sys.Date()-90 & !grepl("WT Plant",location) & date>=max_date-7,],
-             aes(y=n2_mean,shape="N2"),colour="grey30",alpha=0.75,size=1)+
-  geom_step(aes(y=n1_n2_mean_ma),colour="black",lwd=0.8)+
-  facet_wrap(location_label~.,scales="free_y")+
+
+  return(results)
+}))
+
+fits[!is.na(avg),max_date:=max(date,na.rm=T),by=c("location")]
+fits[,max_date:=max(max_date,na.rm=T),by=c("location")]
+fits[,location:=paste0(location,"\n(Last Sample: ",max_date,")"),]
+fits[,q:=ecdf(avg)(avg),by=c("location")]
+
+p <- ggplot(fits,aes(x=date))+
+  geom_ribbon(data=fits[date<=max_date,],aes(ymin=ci_lower,ymax=ci_upper),colour="skyblue4",fill="skyblue2",alpha=0.4,lty=2,lwd=0.4)+
+  geom_ribbon(data=fits[date>=max_date,],aes(ymin=ci_lower,ymax=ci_upper),colour="darkorange2",fill="orange",alpha=0.4,lty=2,lwd=0.4)+
+  geom_point(aes(y=avg),pch=21,fill="#00000022",size=1)+
+  geom_line(data=fits[date<=max_date,],aes(y=fit),lwd=0.6,colour="blue")+
+  #geom_line(data=fits[date>=max_date,],aes(y=fit),lwd=0.4,colour="darkorange3")+
+  facet_wrap(~location,scales = "free_y",nrow=2)+
+  scale_y_continuous(name="Viral Copies per Person\n(Note absolute scale varies by location)")+
+  scale_x_date(name=NULL,
+               date_breaks="1 month",
+               date_labels = "%b",
+               date_minor_breaks = "1 week")+
   theme_bw()+
-  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank(),legend.position = 'bottom',
-        strip.text = element_text(size=rel(0.6)))+
-  scale_y_continuous("SARS-CoV-2 RNA Flux (Avg of N1,N2)")+
-  xlab(NULL)+
-  scale_fill_viridis_c(option = "viridis",name="Percentile")+
-  scale_color_discrete(name=NULL)+
-  scale_shape_discrete(name=NULL)+
   coord_cartesian(ylim=c(0,NA))+
-  labs(title="Alberta COVID19 Wastewater Trends",
-       subtitle=paste0("Latest sample as of ",max(plot_data$date)),
-       caption="Percentile (PXX) indicates fraction of days below the most recent value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
+  labs(title="Alberta: COVID19 in Wastewater",
+       subtitle=glue::glue("Date of Latest Sample Varies by Location, Band represents 95% CI"),
+       caption=glue::glue("Data Source: Alberta Health, Alberta Precision Laboratories & Centre for Health Informatics\n{Sys.Date()}")
+  )
 
-ggsave(filename = paste0("output/ab_wastewater.png"),plot = p, width=8,height=8,units = "in",dpi=150)
+ggsave(glue::glue("ab_wastewater.png"),plot=p,units="in",width=10,height=4,dpi=150,scale = 1.2)
 
-p_calgary1 <- ggplot(plot_data[location %in% c("Calgary")],aes(x=date))+
-  geom_col(aes(y=n1_n2_mean_ma,fill=p_value))+
-  geom_line(aes(y=n1_mean_ma,colour="N1 (MA)"),na.rm = T)+
-  geom_point(aes(y=n1_mean,shape="N1"),colour="grey50",alpha=0.8,size=1)+
-  geom_line(aes(y=n2_mean_ma,colour="N2 (MA)"),na.rm=T)+
-  geom_point(aes(y=n2_mean,shape="N2"),colour="grey50",alpha=0.8,size=1)+
-  geom_step(aes(y=n1_n2_mean_ma),colour="black",lwd=0.8)+
-  facet_wrap(location_label~.,scales="free_y")+
-  theme_bw()+
-  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
-  xlab(NULL)+
-  scale_y_continuous("SARS-CoV-2 RNA Flux")+
-  scale_fill_viridis_c(option = "viridis",name="Percentile")+
-  scale_shape_discrete(name=NULL)+
-  scale_colour_discrete(name=NULL)+
-  coord_cartesian(ylim=c(0,NA))+
-  labs(title="Calgary COVID19 Wastewater Trends",
-       subtitle=paste0("Latest sample as of ",max(plot_data[location %in% c("Calgary"),]$date)))
-
-p_calgary2 <- ggplot(plot_data[location %in% c("Bonnybrook WT Plant", "Fish Creek WT Plant", "Pine Creek WT Plant")],aes(x=date))+
-  geom_col(aes(y=n1_n2_mean_ma,fill=p_value))+
-  geom_line(aes(y=n1_mean_ma,colour="N1 (MA)"),na.rm = T)+
-  geom_point(aes(y=n1_mean,shape="N1"),colour="grey50",alpha=0.8,size=1)+
-  geom_line(aes(y=n2_mean_ma,colour="N2 (MA)"),na.rm=T)+
-  geom_point(aes(y=n2_mean,shape="N2"),colour="grey50",alpha=0.8,size=1)+
-  geom_step(aes(y=n1_n2_mean_ma),colour="black",lwd=0.8)+
-  facet_wrap(location_label~.,scales="free_y")+
-  theme_bw()+
-  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
-  xlab(NULL)+
-  scale_y_continuous("SARS-CoV-2 RNA Flux (Avg of N1,N2)")+
-  scale_x_date(date_breaks="1 year", date_labels="%Y", date_minor_breaks="3 months")+
-  scale_fill_viridis_c(option = "viridis",name="Percentile",guide="none")+
-  scale_shape_discrete(name=NULL)+
-  scale_colour_discrete(name=NULL)+
-  coord_cartesian(ylim=c(0,NA))+
-  labs(caption="Percentile (PXX) indicates fraction of days below the latest value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
-
-
-ggsave(filename = paste0("output/calgary_wastewater.png"),
-       plot = p_calgary1 / p_calgary2 + plot_layout(nrow=2,heights=c(2,1),guides='collect'),
-       width=10,height=8,units = "in",dpi=150)
-
-
-p_edmonton <- ggplot(plot_data[location %in% c("Edmonton")],aes(x=date))+
-  geom_col(aes(y=n1_n2_mean_ma,fill=p_value))+
-  geom_line(aes(y=n1_mean_ma,colour="N1 (MA)"),na.rm = T)+
-  geom_point(aes(y=n1_mean,shape="N1"),colour="grey50",alpha=0.8,size=1)+
-  geom_line(aes(y=n2_mean_ma,colour="N2 (MA)"),na.rm=T)+
-  geom_point(aes(y=n2_mean,shape="N2"),colour="grey50",alpha=0.8,size=1)+
-  geom_step(aes(y=n1_n2_mean_ma),colour="black",lwd=0.8)+
-  facet_wrap(location_label~.,scales="free_y")+
-  theme_bw()+
-  theme(axis.text.y=element_blank(),axis.ticks.y=element_blank())+
-  xlab(NULL)+
-  scale_y_continuous("SARS-CoV-2 RNA Flux (Avg of N1,N2)")+
-  scale_fill_viridis_c(option = "viridis",name="Percentile")+
-  scale_shape_discrete(name=NULL)+
-  coord_cartesian(ylim=c(0,NA))+
-  labs(title="Edmonton COVID19 Wastewater Trends",
-       subtitle=paste0("Latest sample as of ",max(plot_data[location %in% c("Edmonton"),]$date)),
-       caption="Percentile (PXX) indicates fraction of days below the latest value for each location\nData Source: Centre for Health Informatics, Cumming School of Medicine, University of Calgary")
-
-ggsave(filename = paste0("output/edmonton_wastewater.png"),
-       plot = p_edmonton,
-       width=10,height=8,units = "in",dpi=150)
-
-
-p_data <- unique(plot_data[!grepl(".+WT Plant",location,perl=T),list(location,max_date,last_perc),])
-setorder(p_data,last_perc)
-
-p_data[,label:=paste0(location," (",strftime(max_date, "%b %e"),")")]
-p_data[,location:=factor(location,levels=p_data$location,labels = p_data$label)]
-p_data[,label_colour:=ifelse(last_perc>=0.55,ifelse(last_perc>0.85,"#ff0000","#000000"),"#ffffff")]
-
-p_table <- ggplot(p_data,aes(y=location,x=1))+geom_tile(aes(fill=last_perc))+
-  scale_fill_viridis_c(option = "viridis",name="Percentile",values = c(0,1))+
-  geom_text(aes(label=formatC(last_perc,digits=2,format='f')),colour=p_data$label_colour)+
-  ylab("Location")+
-  xlab("Quantile")+
-  theme(axis.text.x =element_blank(), axis.ticks.x=element_blank(),legend.position = "none")+
-  labs(title="COVID19 Wastewater",
-       subtitle="Quantile by Location",
-            caption="Quantile: fraction of days below the latest value for each location\nData Source: CHI-CSM, University of Calgary")
-
-
-ggsave(filename = paste0("output/percentile_table.png"),
-       plot = p_table,
-       width=550,height=425,units = "px",dpi=100)
-
-
-# Calculate if values are increasing or decreasing by location in past 10 days:
-location_trends <- plot_data[!grepl(".+WT Plant", location, perl=T) & date>(max_date-10),list(location,date,n1_n2_mean,n1_n2_mean_ma,last_perc)]
-location_trends[,day:=as.numeric(date-min(date)),by=c("location")]
-location_trends[,trend_param:=ifelse(is.na(n1_n2_mean),n1_n2_mean_ma, n1_n2_mean)]
-
-location_trends[,n1_n2_mean:=zoo::na.approx(n1_n2_mean,na.rm=FALSE,rule=2),by=c("location")]
-
-# Use kendall correlation with days to determine trend:
-location_trends <- location_trends[,list(
-  trend=cor(day,n1_n2_mean_ma,method="kendall",use="pairwise.complete.obs"),
-  trend_detail=cor(day,n1_n2_mean,method="kendall",use="pairwise.complete.obs"),
-  last_perc=mean(last_perc)),by=c("location")]
-
-# this is ugly, problem is we don't want to miss recent trends:
-location_trends[,avg_trend:=(trend+trend_detail)/2,]
-location_trends[,trend_label:=ifelse(avg_trend>0.3,"increasing",ifelse(avg_trend<(-0.3),"decreasing",""))]
-location_trends[trend*trend_detail<0 & abs(trend)+abs(trend_detail)>0.5,trend_label:=""]
-
-# Categorize current levels based on percentiles:
-location_trends[,value_label:=ifelse(last_perc>=0.85,"Very high",
-                                     ifelse(last_perc>0.70,"High",
-                                            ifelse(last_perc>0.55,"Moderate",
-                                                   ifelse(last_perc>0.40,"Low","Very low"))))]
-location_trends <- location_trends[,list(location, value_label, trend_label, last_perc, percentile = paste0(round(last_perc,2)*100,"%ile")),]
-setorder(location_trends, -last_perc)
-
-write.csv(location_trends,file="output/location_trends.csv",row.names=FALSE)
-
-writeLines(
-  paste0(location_trends[,list(label=paste0("- ",location,": ", value_label, " (",percentile,")",ifelse(trend_label=="",""," & "), trend_label)),]$label, collapse="\n"),
-    con="output/location_trends.txt")
-
-edm <- location_trends[location=="Edmonton",]
-if(edm$trend_label == ""){edm$trend_label <- "unstable"}
-writeLines(
-paste0(
-  c("Edmonton COVID19 Wastewater: Level is ",
-    tolower(edm$value_label),
-    " (",edm$percentile,"), trend is ",
-    edm$trend_label,"."),collapse=""),
-con="output/edmonton_wastewater.txt")
-
-cal <- location_trends[location=="Calgary",]
-if(cal$trend_label == ""){cal$trend_label <- "unstable"}
-writeLines(
-  paste0(
-  c("Calgary COVID19 Wastewater: Level is ",
-    tolower(cal$value_label),
-    " (",cal$percentile,"), trend is ",
-    cal$trend_label,"."),collapse=""),
-    con="output/calgary_wastewater.txt")
-
-# Create markdown table of location trends:
-if (require(knitr)) {
-  setnames(location_trends, c("location", "value_label", "trend_label", "percentile"), c("Location", "Level", "Trend", "Percentile"))
-  location_table <- knitr::kable(location_trends,format = "markdown",align = c("l","c","c","c"),caption = "Summary of level and trend by Location")
-  location_table <- stringr::str_replace_all(location_table, "%ile", "")
-  writeLines(location_table, con="output/location_trends.md")
-
-  print(location_table)
-}
-
-print("====== DONE ======")
