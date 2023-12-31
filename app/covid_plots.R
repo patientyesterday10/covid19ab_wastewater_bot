@@ -3,6 +3,9 @@ library(jsonlite)
 library(ggplot2)
 library(locfit)
 
+setwd("/tmp")
+dir.create("/tmp/output",showWarnings = F)
+
 if(!exists("json_data")){
   tmpfile <- tempfile(fileext = ".json")
   download.file("https://chi-covid-data.pages.dev/aplWasteWaterAbData.json",tmpfile)
@@ -83,6 +86,5 @@ p <- ggplot(fits,aes(x=date))+
   )
 
 # Save plot
-dir.create("output",showWarnings = F)
 ggsave("output/ab_wastewater.png",plot=p,units="in",width=10,height=4,dpi=150,scale = 1.2)
 
